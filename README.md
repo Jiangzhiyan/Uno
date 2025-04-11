@@ -19,7 +19,7 @@
 - **PlatformIO** 插件（CLion 內安裝）
 - Arduino UNO 驅動程式（CH340）
 
-### 安裝步驟
+### 安装步骤
 1. 安裝 CLion，於插件市場安裝 PlatformIO。
 2. 創建 PlatformIO 項目，選擇 Arduino UNO 板。
 3. 配置 `platformio.ini`（`framework = arduino` 及程式庫）。
