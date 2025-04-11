@@ -1,4 +1,7 @@
 #include <Arduino.h>
+
+//Written by 23122609 姜祉延 H103
+
 int ledpin1 = 11;
 int inpin1 = 7;
 int ledpin2 = 10;
