@@ -39,47 +39,46 @@ void setup()
  *               5 - 绕右轮左转（只动左轮）
  *               6 - 刹车（停止）
  * @param time 动作持续时间，单位为 100 毫秒。例如 time = 5 表示 500ms。
- * @param speed 电机PWM速度（0~255）
+ * @param speed_left 电机PWM速度（0~255）
+ * @param speed_right 电机PWM速度（0~255）
  */
-void move(int action, int time, int speed)
+void move(int action, int speed_left, int speed_right)
 {
-    // 先全部关闭，避免冲
+    // 先全部关闭，避免冲突
     analogWrite(Left_motor_go, 0);
-    analogWrite(Left_motor_back, 0);
+    analogWrite(Left_motor_back, LOW);
     analogWrite(Right_motor_go, 0);
-    analogWrite(Right_motor_back, 0);
+    analogWrite(Right_motor_back, LOW);
 
     if (action == 0) { // forward
-        analogWrite(Left_motor_go, speed);
+        analogWrite(Left_motor_go, speed_left);
         digitalWrite(Left_motor_back, LOW);
-        analogWrite(Right_motor_go, speed);
+        analogWrite(Right_motor_go, speed_right);
         digitalWrite(Right_motor_back, LOW);
     }
-    else if (action == 1) { // backward
-        digitalWrite(Left_motor_go, LOW);
-        analogWrite(Left_motor_back, speed);
-        digitalWrite(Right_motor_go, LOW);
-        analogWrite(Right_motor_back, speed);
-    }
-    else if (action == 2) { // turn_left
-        analogWrite(Left_motor_back, speed);
-        analogWrite(Right_motor_go, speed);
-    }
-    else if (action == 3) { // turn_right
-        analogWrite(Left_motor_go, speed);
-        analogWrite(Right_motor_back, speed);
-    }
-    else if (action == 4) { // pivot_left
-        analogWrite(Right_motor_go, speed);
-    }
-    else if (action == 5) { // pivot_right
-        analogWrite(Left_motor_go, speed);
-    }
+    // else if (action == 1) { // backward
+    //     digitalWrite(Left_motor_go, LOW);
+    //     analogWrite(Left_motor_back, speed_left);
+    //     digitalWrite(Right_motor_go, LOW);
+    //     analogWrite(Right_motor_back, speed_right);
+    // }
+    // else if (action == 2) { // turn_left
+    //     analogWrite(Left_motor_back, speed_left);
+    //     analogWrite(Right_motor_go, speed_right);
+    // }
+    // else if (action == 3) { // turn_right
+    //     analogWrite(Left_motor_go, speed_left);
+    //     analogWrite(Right_motor_back, speed_right);
+    // }
+    // else if (action == 4) { // pivot_left
+    //     analogWrite(Right_motor_go, speed_right);
+    // }
+    // else if (action == 5) { // pivot_right
+    //     analogWrite(Left_motor_go, speed_left);
+    // }
     else if (action == 6) { // brake
         // 全部停下
     }
-
-    delay(time * 100);
 }
 
 void loop()
