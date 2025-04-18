@@ -12,13 +12,13 @@
  */
 
 // 左电机前进控制引脚（连接到 IN2）
-int Left_motor_go=9;
+int Left_motor_go = 9;
 // 右电机前进控制引脚（连接到 IN3）
-int Right_motor_go=10;
+int Right_motor_go = 10;
 // 左电机后退控制引脚（连接到 IN1）
-int Left_motor_back=8;
+int Left_motor_back = 8;
 // 右电机后退控制引脚（连接到 IN4）
-int Right_motor_back=12;
+int Right_motor_back = 12;
 
 /**
  * 设置所有电机控制引脚为输出模式
@@ -26,10 +26,10 @@ int Right_motor_back=12;
 void setup()
 {
 
-    pinMode(Left_motor_go,OUTPUT);
-    pinMode(Right_motor_go,OUTPUT);
-    pinMode(Left_motor_back,OUTPUT);
-    pinMode(Right_motor_back,OUTPUT);
+	pinMode(Left_motor_go, OUTPUT);
+	pinMode(Right_motor_go, OUTPUT);
+	pinMode(Left_motor_back, OUTPUT);
+	pinMode(Right_motor_back, OUTPUT);
 }
 
 /**
@@ -85,7 +85,7 @@ void move(int action, int speed_left, int speed_right)
 	// }
 	else if (action == 6)
 	{
-		//停止刹车
+		// 停止刹车
 	}
 }
 
