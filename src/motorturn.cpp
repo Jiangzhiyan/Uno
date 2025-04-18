@@ -11,8 +11,8 @@ int Right_motor_go=10;
 
 // 左电机后退控制引脚（连接到 D8）
 int Left_motor_back=8;
-// 右电机后退控制引脚（连接到 D11）
-int Right_motor_back=11;
+// 右电机后退控制引脚（连接到 D12）
+int Right_motor_back=12;
 
 /**
  * 设置所有电机控制引脚为输出模式
