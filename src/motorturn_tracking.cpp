@@ -5,8 +5,10 @@
 #include <Arduino.h>
 
 /**
- * 1  引脚连接OUT1
- * 2  引脚连接OUT2
+ * A0  引脚连接OUT3
+ * A1  引脚连接OUT4
+ * A2  引脚连接OUT1
+ * A3  引脚连接OUT2
  * 8  引脚连接IN1
  * 9  引脚连接IN2
  * 10 引脚连接IN3
@@ -22,9 +24,13 @@ int Left_motor_back = 8;
 // 右电机后退控制引脚（连接到 IN4）
 int Right_motor_back = 12;
 // 左循迹接收引脚 (连接到 OUT1)
-int Left_tracking = 0;
+const int Left_tracking = A2;
 // 右循迹接收引脚 (连接到 OUT2)
-int Right_tracking = 1;
+const int Right_tracking = A3;
+// 左避障接收引脚 (连接到 OUT4)
+const int SensorLeft_2 = A1;
+// 右避障接收引脚 (连接到 OUT3)
+const int SensorRight_2 = A0;
 
 /**
  * 设置所有电机控制引脚为输出模式
@@ -37,6 +43,8 @@ void setup()
 	pinMode(Right_motor_back, OUTPUT);
 	pinMode(Left_tracking, INPUT);
 	pinMode(Right_tracking, INPUT);
+	pinMode(SensorLeft_2, INPUT);
+	pinMode(SensorRight_2, INPUT);
 }
 
 /**
@@ -69,12 +77,12 @@ void move(int action, int speed_left, int speed_right)
 		analogWrite(Right_motor_go, speed_right);
 		digitalWrite(Right_motor_back, LOW);
 	}
-	// else if (action == 1) { // backward
-	//     digitalWrite(Left_motor_go, LOW);
-	//     analogWrite(Left_motor_back, speed_left);
-	//     digitalWrite(Right_motor_go, LOW);
-	//     analogWrite(Right_motor_back, speed_right);
-	// }
+	else if (action == 1) { // backward
+		analogWrite(Left_motor_go, 0);
+		digitalWrite(Left_motor_back, HIGH);
+		analogWrite(Right_motor_go, 0);
+		digitalWrite(Right_motor_back, HIGH);
+	}
 	// else if (action == 2) {// turn_left
 	//     analogWrite(Left_motor_back, speed_left);
 	//     analogWrite(Right_motor_go, speed_right);
@@ -97,21 +105,41 @@ void move(int action, int speed_left, int speed_right)
 
 void loop()
 {
-    // 读取循迹传感器状态
-    int leftVal = digitalRead(Left_tracking);
-    int rightVal = digitalRead(Right_tracking);
+    // 读取避障传感器状态
+    int obsLeft = digitalRead(SensorLeft_2);
+    int obsRight = digitalRead(SensorRight_2);
 
-    if (leftVal == HIGH && rightVal == HIGH) {
-        // 两个传感器都在白色区域，直行
-        move(0, 150, 150);
-    } else if (leftVal == LOW && rightVal == HIGH) {
-        // 左侧探测到黑线，向左转
-        move(0, 150, 160);
-    } else if (leftVal == HIGH && rightVal == LOW) {
-        // 右侧探测到黑线，向右转
-        move(0, 160, 150);
+    if (obsLeft == LOW || obsRight == LOW) {
+        // 避障逻辑
+        if (obsLeft == LOW && obsRight == LOW) {
+            // 前后都检测到障碍，后退并停止
+            move(1, 0, 0);
+            delay(300);
+            move(6, 0, 0);
+        } else if (obsLeft == LOW) {
+            // 左侧检测到障碍，右转
+            move(0, 200, 0);
+        } else {
+            // 右侧检测到障碍，左转
+            move(0, 0, 200);
+        }
     } else {
-        // 两个传感器都探测到黑线，停止
-        move(6, 0, 0);
+        // 追迹逻辑
+        int leftVal = digitalRead(Left_tracking);
+        int rightVal = digitalRead(Right_tracking);
+
+        if (leftVal == HIGH && rightVal == HIGH) {
+            // 两个传感器都在白色区域，直行
+            move(0, 150, 150);
+        } else if (leftVal == LOW && rightVal == HIGH) {
+            // 左侧探测到黑线，左转调整
+            move(0, 150, 160);
+        } else if (leftVal == HIGH && rightVal == LOW) {
+            // 右侧探测到黑线，右转调整
+            move(0, 160, 150);
+        } else {
+            // 两个传感器都探测到黑线，停止
+            move(6, 0, 0);
+        }
     }
 }
