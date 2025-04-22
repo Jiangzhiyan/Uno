@@ -1,10 +1,12 @@
 //
-// Created by Jiang Zhiyan on 25-4-17.
+// Created by Jiang Zhiyan on 25-4-22.
 //
 
 #include <Arduino.h>
 
 /**
+ * 1  引脚连接OUT1
+ * 2  引脚连接OUT2
  * 8  引脚连接IN1
  * 9  引脚连接IN2
  * 10 引脚连接IN3
@@ -19,17 +21,22 @@ int Right_motor_go = 10;
 int Left_motor_back = 8;
 // 右电机后退控制引脚（连接到 IN4）
 int Right_motor_back = 12;
+// 左循迹接收引脚 (连接到 OUT1)
+int Left_tracking = 0;
+// 右循迹接收引脚 (连接到 OUT2)
+int Right_tracking = 1;
 
 /**
  * 设置所有电机控制引脚为输出模式
  */
 void setup()
 {
-
 	pinMode(Left_motor_go, OUTPUT);
 	pinMode(Right_motor_go, OUTPUT);
 	pinMode(Left_motor_back, OUTPUT);
 	pinMode(Right_motor_back, OUTPUT);
+	pinMode(Left_tracking, INPUT);
+	pinMode(Right_tracking, INPUT);
 }
 
 /**
@@ -68,18 +75,18 @@ void move(int action, int speed_left, int speed_right)
 	//     digitalWrite(Right_motor_go, LOW);
 	//     analogWrite(Right_motor_back, speed_right);
 	// }
-	// else if (action == 2) { // turn_left
+	// else if (action == 2) {// turn_left
 	//     analogWrite(Left_motor_back, speed_left);
 	//     analogWrite(Right_motor_go, speed_right);
 	// }
-	// else if (action == 3) { // turn_right
+	// else if (action == 3) {// turn_right
 	//     analogWrite(Left_motor_go, speed_left);
 	//     analogWrite(Right_motor_back, speed_right);
 	// }
-	// else if (action == 4) { // pivot_left
+	// else if (action == 4) {// pivot_left
 	//     analogWrite(Right_motor_go, speed_right);
 	// }
-	// else if (action == 5) { // pivot_right
+	// else if (action == 5) {// pivot_right
 	//     analogWrite(Left_motor_go, speed_left);
 	// }
 	else if (action == 6)
@@ -90,29 +97,21 @@ void move(int action, int speed_left, int speed_right)
 
 void loop()
 {
-	// 直行前进，初始进入S形路径
-	move(0, 100, 100);
-	delay(700);
-	// move(6,0,0);
-	// delay(500);
+    // 读取循迹传感器状态
+    int leftVal = digitalRead(Left_tracking);
+    int rightVal = digitalRead(Right_tracking);
 
-	// 左转弯，开始进入S形第一个弯道
-	move(0, 120, 0);
-	delay(410);
-
-	// 再次直行，穿过S形路径的中间直道
-	move(0, 100, 100);
-	delay(2800);
-
-	// 右转弯，进入S形路径第二个弯道
-	move(0, 0, 120);
-	delay(450);
-
-	// 最后直行，完成S形路径
-	move(0, 100, 100);
-	delay(1200);
-
-	// 停止，动作结束
-	move(6, 0, 0);
-	delay(1000000);
+    if (leftVal == HIGH && rightVal == HIGH) {
+        // 两个传感器都在白色区域，直行
+        move(0, 150, 150);
+    } else if (leftVal == LOW && rightVal == HIGH) {
+        // 左侧探测到黑线，向左转
+        move(0, 150, 160);
+    } else if (leftVal == HIGH && rightVal == LOW) {
+        // 右侧探测到黑线，向右转
+        move(0, 160, 150);
+    } else {
+        // 两个传感器都探测到黑线，停止
+        move(6, 0, 0);
+    }
 }
