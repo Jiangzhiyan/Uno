@@ -77,16 +77,20 @@ void move(int action, int speed_left, int speed_right)
 		analogWrite(Right_motor_go, speed_right);
 		digitalWrite(Right_motor_back, LOW);
 	}
-	else if (action == 1) { // backward
+	else if (action == 1)
+	{ // backward
 		analogWrite(Left_motor_go, 0);
 		digitalWrite(Left_motor_back, HIGH);
 		analogWrite(Right_motor_go, 0);
 		digitalWrite(Right_motor_back, HIGH);
 	}
-	// else if (action == 2) {// turn_left
-	//     analogWrite(Left_motor_back, speed_left);
-	//     analogWrite(Right_motor_go, speed_right);
-	// }
+	else if (action == 2)
+	{
+		analogWrite(Left_motor_go, 0);
+		digitalWrite(Left_motor_back, HIGH);
+		analogWrite(Right_motor_go, 254);
+		digitalWrite(Right_motor_back, LOW);
+	}
 	// else if (action == 3) {// turn_right
 	//     analogWrite(Left_motor_go, speed_left);
 	//     analogWrite(Right_motor_back, speed_right);
@@ -105,41 +109,48 @@ void move(int action, int speed_left, int speed_right)
 
 void loop()
 {
-    // 读取避障传感器状态
-    int obsLeft = digitalRead(SensorLeft_2);
-    int obsRight = digitalRead(SensorRight_2);
+	// 读取避障传感器状态
+	int obsLeft = digitalRead(SensorLeft_2);
+	int obsRight = digitalRead(SensorRight_2);
+	if (obsLeft == LOW && obsRight == LOW)
+	{
+		// 前后都检测到障碍，后退并停止
+		move(2, 0, 0);
+		delay(236);
+		move(6, 0, 0);
+	}
+	else if (obsLeft == LOW && obsRight == HIGH)
+	{
+		// 左侧检测到障碍，右转
+		move(0, 200, 0);
+	}
+	else if (obsLeft == HIGH && obsRight == LOW)
+	{
+		// 右侧检测到障碍，左转
+		move(0, 0, 200);
+	}
+	else
+	{
+		// 追迹逻辑
+		int leftVal = digitalRead(Left_tracking);
+		int rightVal = digitalRead(Right_tracking);
 
-    if (obsLeft == LOW || obsRight == LOW) {
-        // 避障逻辑
-        if (obsLeft == LOW && obsRight == LOW) {
-            // 前后都检测到障碍，后退并停止
-            move(1, 0, 0);
-            delay(300);
-            move(6, 0, 0);
-        } else if (obsLeft == LOW) {
-            // 左侧检测到障碍，右转
-            move(0, 200, 0);
-        } else {
-            // 右侧检测到障碍，左转
-            move(0, 0, 200);
-        }
-    } else {
-        // 追迹逻辑
-        int leftVal = digitalRead(Left_tracking);
-        int rightVal = digitalRead(Right_tracking);
-
-        if (leftVal == HIGH && rightVal == HIGH) {
-            // 两个传感器都在白色区域，直行
-            move(0, 150, 150);
-        } else if (leftVal == LOW && rightVal == HIGH) {
-            // 左侧探测到黑线，左转调整
-            move(0, 150, 160);
-        } else if (leftVal == HIGH && rightVal == LOW) {
-            // 右侧探测到黑线，右转调整
-            move(0, 160, 150);
-        } else {
-            // 两个传感器都探测到黑线，停止
-            move(6, 0, 0);
-        }
-    }
+		if (leftVal == LOW && rightVal == LOW)
+		{
+			// 两个传感器都在白色区域，直行
+			move(0, 168, 160);
+		}
+		else if (leftVal == LOW && rightVal == HIGH)
+		{
+			// 左侧探测到白线，右转调整
+			move(0, 40, 120);
+			delay(3);
+		}
+		else if (leftVal == HIGH && rightVal == LOW)
+		{
+			// 右侧探测到白线，左转调整
+			move(0, 120, 40);
+			delay(3);
+		}
+	}
 }
