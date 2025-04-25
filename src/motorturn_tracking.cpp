@@ -14,7 +14,6 @@
  * 10 引脚连接IN3
  * 12 引脚连接IN4
  */
-
 // 左电机前进控制引脚（连接到 IN2）
 int Left_motor_go = 9;
 // 右电机前进控制引脚（连接到 IN3）
@@ -77,18 +76,19 @@ void move(int action, int speed_left, int speed_right)
 		analogWrite(Right_motor_go, speed_right);
 		digitalWrite(Right_motor_back, LOW);
 	}
-	else if (action == 1)
-	{ // backward
+	// else if (action == 1)
+	// { // backward
+	// 	analogWrite(Left_motor_go, 0);
+	// 	digitalWrite(Left_motor_back, HIGH);
+	// 	analogWrite(Right_motor_go, 0);
+	// 	digitalWrite(Right_motor_back, HIGH);
+	// }
+	else if (action == 2)
+	{
+		// left_backward
 		analogWrite(Left_motor_go, 0);
 		digitalWrite(Left_motor_back, HIGH);
 		analogWrite(Right_motor_go, 0);
-		digitalWrite(Right_motor_back, HIGH);
-	}
-	else if (action == 2)
-	{
-		analogWrite(Left_motor_go, 0);
-		digitalWrite(Left_motor_back, HIGH);
-		analogWrite(Right_motor_go, 254);
 		digitalWrite(Right_motor_back, LOW);
 	}
 	// else if (action == 3) {// turn_right
@@ -109,36 +109,41 @@ void move(int action, int speed_left, int speed_right)
 
 void loop()
 {
+	// 追迹逻辑
+	int leftVal = digitalRead(Left_tracking);
+	int rightVal = digitalRead(Right_tracking);
+
 	// 读取避障传感器状态
 	int obsLeft = digitalRead(SensorLeft_2);
 	int obsRight = digitalRead(SensorRight_2);
+	// 遇到障碍物掉头
 	if (obsLeft == LOW && obsRight == LOW)
 	{
-		// 前后都检测到障碍，后退并停止
 		move(2, 0, 0);
-		delay(236);
+		delay(280);
 		move(6, 0, 0);
+		delay(400);
+		move(0, 0, 100);
+		delay(570);
+		move(6, 0, 0);
+		delay(1000);
 	}
-	else if (obsLeft == LOW && obsRight == HIGH)
-	{
-		// 左侧检测到障碍，右转
-		move(0, 200, 0);
-	}
-	else if (obsLeft == HIGH && obsRight == LOW)
-	{
-		// 右侧检测到障碍，左转
-		move(0, 0, 200);
-	}
+	// else if (obsLeft == LOW && obsRight == HIGH)
+	// {
+	// 	// 左侧检测到障碍，右转
+	//     move(0, 200, 0); // 如果左侧检测到障碍，执行右转调整
+	// }
+	// else if (obsLeft == HIGH && obsRight == LOW)
+	// {
+	// 	// 右侧检测到障碍，左转
+	//     move(0, 0, 200); // 如果右侧检测到障碍，执行左转调整
+	// }
 	else
 	{
-		// 追迹逻辑
-		int leftVal = digitalRead(Left_tracking);
-		int rightVal = digitalRead(Right_tracking);
-
 		if (leftVal == LOW && rightVal == LOW)
 		{
 			// 两个传感器都在白色区域，直行
-			move(0, 168, 160);
+			move(0, 178, 160);
 		}
 		else if (leftVal == LOW && rightVal == HIGH)
 		{
