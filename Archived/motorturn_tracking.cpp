@@ -15,9 +15,9 @@
  * 12 引脚连接IN4
  */
 // 左电机前进控制引脚（连接到 IN2）
-int Left_motor_go = 9;
+int Left_motor_go = A5;
 // 右电机前进控制引脚（连接到 IN3）
-int Right_motor_go = 10;
+int Right_motor_go = A4;
 // 左电机后退控制引脚（连接到 IN1）
 int Left_motor_back = 8;
 // 右电机后退控制引脚（连接到 IN4）

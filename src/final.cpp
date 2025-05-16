@@ -3,7 +3,7 @@
 //
 
 #include <Arduino.h>
-
+#include <Servo.h>
 
 // Servo signal pins
 const int basePin = 11;
@@ -11,14 +11,10 @@ const int rArmPin = 5;
 const int fArmPin = 3;
 const int clawPin = 6;
 
-// Generate a 20ms-period pulse; 500–2480µs pulse width for 0–180°
-void servopulse(int pin, int angle) {
-  int pulsewidth = angle * 11 + 500;          // map 0–180 to 500–2480 µs
-  digitalWrite(pin, HIGH);
-  delayMicroseconds(pulsewidth);
-  digitalWrite(pin, LOW);
-  delayMicroseconds(20000 - pulsewidth);
-}
+Servo baseServo;
+Servo rArmServo;
+Servo fArmServo;
+Servo clawServo;
 
 /**
  * A0  引脚连接OUT3
@@ -31,9 +27,9 @@ void servopulse(int pin, int angle) {
  * 12 引脚连接IN4
  */
 // 左电机前进控制引脚（连接到 IN2）
-int Left_motor_go = 9;
+int Left_motor_go = A5;
 // 右电机前进控制引脚（连接到 IN3）
-int Right_motor_go = 10;
+int Right_motor_go = A4;
 // 左电机后退控制引脚（连接到 IN1）
 int Left_motor_back = 8;
 // 右电机后退控制引脚（连接到 IN4）
@@ -46,6 +42,36 @@ const int Right_tracking = A3;
 const int SensorLeft_2 = A1;
 // 右避障接收引脚 (连接到 OUT3)
 const int SensorRight_2 = A0;
+
+void manualPWM(int pin, int duty) {
+  int highTime = map(duty, 0, 255, 0, 2000);
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(highTime);
+  digitalWrite(pin, LOW);
+  delayMicroseconds(2000 - highTime);
+}
+
+// Generate synchronized PWM pulses on two pins within the same cycle, with independent duty cycles
+void manualPWMTwo(int pin1, int pin2, int duty1, int duty2) {
+  int high1 = map(duty1, 0, 255, 0, 2000);
+  int high2 = map(duty2, 0, 255, 0, 2000);
+  // Start both high
+  digitalWrite(pin1, HIGH);
+  digitalWrite(pin2, HIGH);
+  if (high1 < high2) {
+    delayMicroseconds(high1);
+    digitalWrite(pin1, LOW);
+    delayMicroseconds(high2 - high1);
+    digitalWrite(pin2, LOW);
+    delayMicroseconds(2000 - high2);
+  } else {
+    delayMicroseconds(high2);
+    digitalWrite(pin2, LOW);
+    delayMicroseconds(high1 - high2);
+    digitalWrite(pin1, LOW);
+    delayMicroseconds(2000 - high1);
+  }
+}
 
 /**
  * 设置所有电机控制引脚为输出模式
@@ -65,8 +91,13 @@ void setup()
 	pinMode(fArmPin, OUTPUT);
 	pinMode(clawPin, OUTPUT);
 
-	// Enable OC1A/OC1B non-inverting mode without changing PWM mode or prescaler
-	TCCR1A |= _BV(COM1A1) | _BV(COM1B1);
+	baseServo.attach(basePin);
+	rArmServo.attach(rArmPin);
+	fArmServo.attach(fArmPin);
+	clawServo.attach(clawPin);
+
+	// Enable OC1A/OC1B non-inverting mode without changing PWM mode or prescaler.
+	// TCCR1A |= _BV(COM1A1) | _BV(COM1B1);
 }
 
 /**
@@ -87,16 +118,17 @@ void setup()
 void move(int action, int speed_left, int speed_right)
 {
 	// 先全部关闭，避免冲突
-	analogWrite(Left_motor_go, 0);
+	//analogWrite(Left_motor_go, 0);
+	digitalWrite(Left_motor_go, LOW);
 	digitalWrite(Left_motor_back, LOW);
-	analogWrite(Right_motor_go, 0);
+	//analogWrite(Right_motor_go, 0);
+	digitalWrite(Right_motor_go, LOW);
 	digitalWrite(Right_motor_back, LOW);
 
 	if (action == 0)
-	{ // forward
-		analogWrite(Left_motor_go, speed_left);
+	{ // forward with independent, synchronized PWM
+		manualPWMTwo(Left_motor_go, Right_motor_go, speed_left, speed_right);
 		digitalWrite(Left_motor_back, LOW);
-		analogWrite(Right_motor_go, speed_right);
 		digitalWrite(Right_motor_back, LOW);
 	}
 	// else if (action == 1)
@@ -109,9 +141,11 @@ void move(int action, int speed_left, int speed_right)
 	else if (action == 2)
 	{
 		// left_backward
-		analogWrite(Left_motor_go, 0);
+		//analogWrite(Left_motor_go, 0);
+		digitalWrite(Left_motor_go, LOW);
 		digitalWrite(Left_motor_back, HIGH);
-		analogWrite(Right_motor_go, 0);
+		//analogWrite(Right_motor_go, 0);
+		digitalWrite(Right_motor_go, LOW);
 		digitalWrite(Right_motor_back, LOW);
 	}
 	// else if (action == 3) {// turn_right
@@ -142,53 +176,61 @@ void loop()
 	// 遇到障碍物停车
 	if (obsLeft == LOW && obsRight == LOW)
 	{
-		move(6,0,0);
+		move(6, 0, 0);
 		delay(100);
-		for (int pos = 0; pos <= 180; pos++)
-		{
-			servopulse(basePin, pos);
-			delay(10);
-		}
-		for (int pos = 180; pos >= 0; pos--)
-		{
-			servopulse(basePin, pos);
-			delay(10);
-		}
-		servopulse(basePin, 90);
-		for (int pos = 90; pos <= 180; pos++)
-		{
-			servopulse(rArmPin, pos);
-			delay(10);
-		}
-		for (int pos = 180; pos >= 90; pos--)
-		{
-			servopulse(rArmPin, pos);
-			delay(10);
-		}
-		servopulse(rArmPin, 90);
-		for (int pos = 81; pos <= 180; pos++)
-		{
-			servopulse(clawPin, pos);
-			delay(10);
-		}
-		for (int pos = 180; pos >= 81; pos--)
-		{
-			servopulse(clawPin, pos);
-			delay(10);
-		}
-		servopulse(clawPin, 81);
-		for (int pos = 0; pos <= 117; pos++)
-		{
-			servopulse(fArmPin, pos);
-			delay(10);
-		}
-		for (int pos = 117; pos >= 0; pos--)
-		{
-			servopulse(fArmPin, pos);
-			delay(10);
-		}
-		servopulse(fArmPin, 90);
-		delay(1000);
+		// for (int pos = 0; pos <= 180; pos++)
+		// {
+		// 	baseServo.write(pos);
+		// 	delay(10);
+		// }
+		// for (int pos = 180; pos >= 0; pos--)
+		// {
+		// 	baseServo.write(pos);
+		// 	delay(10);
+		// }
+		// baseServo.write(90);
+		// for (int pos = 0; pos <= 117; pos++)
+		// {
+		// 	fArmServo.write(pos);
+		// 	delay(10);
+		// }
+		// for (int pos = 117; pos >= 0; pos--)
+		// {
+		// 	fArmServo.write(pos);
+		// 	delay(10);
+		// }
+		// fArmServo.write(0);
+		// for (int pos = 90; pos <= 180; pos++)
+		// {
+		// 	rArmServo.write(pos);
+		// 	delay(10);
+		// }
+		// for (int pos = 180; pos >= 90; pos--)
+		// {
+		// 	rArmServo.write(pos);
+		// 	delay(10);
+		// }
+		// rArmServo.write(90);
+		// for (int pos = 81; pos <= 180; pos++)
+		// {
+		// 	clawServo.write(pos);
+		// 	delay(10);
+		// }
+		// for (int pos = 180; pos >= 81; pos--)
+		// {
+		// 	clawServo.write(pos);
+		// 	delay(10);
+		// }
+		// clawServo.write(81);
+		//
+		// delay(100);
+		//
+		// for (int i = 0; i < 200; i++) {
+		// 	move(0, 80, 1);
+		// }
+
+		delay(1000000);
+
 
 	}
 	else
@@ -196,20 +238,22 @@ void loop()
 		if (leftVal == LOW && rightVal == LOW)
 		{
 			// 两个传感器都在白色区域，直行
-			move(0, 60, 60);
+			move(0, 178, 160);
 		}
 		else if (leftVal == LOW && rightVal == HIGH)
 		{
 			// 左侧探测到白线，右转调整
-			move(0, 40, 100);
+			move(0, 40, 120);
+			delay(3);
 		}
 		else if (leftVal == HIGH && rightVal == LOW)
 		{
 			// 右侧探测到白线，左转调整
-			move(0, 100, 40);
+			move(0, 120, 40);
+			delay(3);
 		}
 	}
-
-	delay(1000);
-
 }
+
+
+// b 130 R 150 F
