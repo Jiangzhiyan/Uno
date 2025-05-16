@@ -62,6 +62,7 @@ void setup()
 	rArm.attach(5);
 	fArm.attach(3);
 	claw.attach(6);
+	claw.write(90);
 	Serial.begin(9600);
 	Serial.println("Commands: B<angle>, R<angle>, F<angle>, C<angle> to move servos; P to pick and place");
 }

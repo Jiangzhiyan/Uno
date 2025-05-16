@@ -177,57 +177,56 @@ void loop()
 	if (obsLeft == LOW && obsRight == LOW)
 	{
 		move(6, 0, 0);
-		delay(100);
-		// for (int pos = 0; pos <= 180; pos++)
-		// {
-		// 	baseServo.write(pos);
-		// 	delay(10);
-		// }
-		// for (int pos = 180; pos >= 0; pos--)
-		// {
-		// 	baseServo.write(pos);
-		// 	delay(10);
-		// }
-		// baseServo.write(90);
-		// for (int pos = 0; pos <= 117; pos++)
-		// {
-		// 	fArmServo.write(pos);
-		// 	delay(10);
-		// }
-		// for (int pos = 117; pos >= 0; pos--)
-		// {
-		// 	fArmServo.write(pos);
-		// 	delay(10);
-		// }
-		// fArmServo.write(0);
-		// for (int pos = 90; pos <= 180; pos++)
-		// {
-		// 	rArmServo.write(pos);
-		// 	delay(10);
-		// }
-		// for (int pos = 180; pos >= 90; pos--)
-		// {
-		// 	rArmServo.write(pos);
-		// 	delay(10);
-		// }
-		// rArmServo.write(90);
-		// for (int pos = 81; pos <= 180; pos++)
-		// {
-		// 	clawServo.write(pos);
-		// 	delay(10);
-		// }
-		// for (int pos = 180; pos >= 81; pos--)
-		// {
-		// 	clawServo.write(pos);
-		// 	delay(10);
-		// }
-		// clawServo.write(81);
-		//
-		// delay(100);
-		//
-		// for (int i = 0; i < 200; i++) {
-		// 	move(0, 80, 1);
-		// }
+		delay(500);
+
+
+		for (int i = 0; i < 180; i++) {
+			move(0, 80, 1);
+		}
+		for (int pos = 0; pos <= 180; pos++)
+		{
+			baseServo.write(pos);
+			delay(10);
+		}
+		for (int pos = 180; pos >= 0; pos--)
+		{
+			baseServo.write(pos);
+			delay(10);
+		}
+		baseServo.write(90);
+		for (int pos = 0; pos <= 117; pos++)
+		{
+			fArmServo.write(pos);
+			delay(10);
+		}
+		for (int pos = 117; pos >= 0; pos--)
+		{
+			fArmServo.write(pos);
+			delay(10);
+		}
+		fArmServo.write(0);
+		for (int pos = 90; pos <= 180; pos++)
+		{
+			rArmServo.write(pos);
+			delay(10);
+		}
+		for (int pos = 180; pos >= 90; pos--)
+		{
+			rArmServo.write(pos);
+			delay(10);
+		}
+		rArmServo.write(90);
+		for (int pos = 90; pos <= 180; pos++)
+		{
+			clawServo.write(pos);
+			delay(10);
+		}
+		for (int pos = 180; pos >= 90; pos--)
+		{
+			clawServo.write(pos);
+			delay(10);
+		}
+		clawServo.write(90);
 
 		delay(1000000);
 
@@ -256,4 +255,8 @@ void loop()
 }
 
 
-// b 130 R 150 F
+// b 120->10 R 160 F50
+// b 145->35
+
+
+// b170->60 R160 f50
