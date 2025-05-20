@@ -86,14 +86,14 @@ const int SensorLeft_2 = A1;
 const int SensorRight_2 = A0;
 
 
- /**
-  * 平滑控制函数 slowWrite
-  * 通过微小步进延时实现舵机平滑转动到目标位置
-  *
-  * @param s       目标舵机对象
-  * @param target  目标角度
-  * @param stepDelay 每步延时(ms)
-  */
+/**
+ * 平滑控制函数 slowWrite
+ * 通过微小步进延时实现舵机平滑转动到目标位置
+ *
+ * @param s       目标舵机对象
+ * @param target  目标角度
+ * @param stepDelay 每步延时(ms)
+ */
 void slowWrite(Servo& s, int target, int stepDelay)
 {
 	int current = s.read();
@@ -321,76 +321,76 @@ void loop()
 		// Transfer 1
 		// 1. Open claw.
 		slowWrite(clawServo, 130, clawDelay);
-	delay(200);
-	// 2. Move to pick
-	slowWrite(baseServo, basePick1, stepDelay);
-	slowWrite(fArmServo, fArmPick1, stepDelay);
-	slowWrite(rArmServo, rArmPick1, stepDelay);
-	slowWrite(clawServo, clawPick1, clawDelay);
-	delay(200);
-	// 3. Lift fArm
-	slowWrite(rArmServo, rArmPick1 - 20, stepDelay);
-	// 4. Move to place
-	slowWrite(baseServo, basePlace1, stepDelay);
-	slowWrite(fArmServo, fArmPlace1, stepDelay);
-	slowWrite(rArmServo, rArmPlace1, stepDelay);
-	delay(200);
-	// 5. Open claw to release
-	slowWrite(clawServo, 130, clawDelay);
-	// 6. Reset all to 90°
-	slowWrite(rArmServo, 90, stepDelay);
-	slowWrite(baseServo, 90, stepDelay);
-	slowWrite(clawServo, 130, clawDelay);
+		delay(200);
+		// 2. Move to pick
+		slowWrite(baseServo, basePick1, stepDelay);
+		slowWrite(fArmServo, fArmPick1, stepDelay);
+		slowWrite(rArmServo, rArmPick1, stepDelay);
+		slowWrite(clawServo, clawPick1, clawDelay);
+		delay(200);
+		// 3. Lift fArm
+		slowWrite(rArmServo, rArmPick1 - 20, stepDelay);
+		// 4. Move to place
+		slowWrite(baseServo, basePlace1, stepDelay);
+		slowWrite(fArmServo, fArmPlace1, stepDelay);
+		slowWrite(rArmServo, rArmPlace1, stepDelay);
+		delay(200);
+		// 5. Open claw to release
+		slowWrite(clawServo, 130, clawDelay);
+		// 6. Reset all to 90°
+		slowWrite(rArmServo, 90, stepDelay);
+		slowWrite(baseServo, 90, stepDelay);
+		slowWrite(clawServo, 130, clawDelay);
 
-	// Transfer 2
-	// 2. Move to pick.
-	slowWrite(baseServo, basePick2, stepDelay);
-	slowWrite(fArmServo, fArmPick2, stepDelay);
-	slowWrite(rArmServo, rArmPick2, stepDelay);
-	slowWrite(clawServo, clawPick2, clawDelay);
-	delay(200);
-	// 3. Lift fArm
-	slowWrite(rArmServo, rArmPick2 - 20, stepDelay);
-	// 4. Move to place
-	slowWrite(baseServo, basePlace2, stepDelay);
-	slowWrite(fArmServo, fArmPlace2, stepDelay);
-	slowWrite(rArmServo, rArmPlace2, stepDelay);
-	delay(200);
-	// 5. Open claw to release
-	slowWrite(clawServo, 130, clawDelay);
-	// 6. Reset all to 90°
-	slowWrite(rArmServo, 90, stepDelay);
-	slowWrite(baseServo, 90, stepDelay);
-	slowWrite(clawServo, 130, clawDelay);
-	// Transfer 3
-	// 1. Open claw.
-	slowWrite(clawServo, 130, clawDelay);
-	// 2. Move to pick
-	slowWrite(baseServo, basePick3, stepDelay);
-	slowWrite(fArmServo, fArmPick3, stepDelay);
-	slowWrite(rArmServo, rArmPick3, stepDelay);
-	slowWrite(clawServo, clawPick3, clawDelay);
-	delay(200);
-	// 3. Lift fArm
-	slowWrite(rArmServo, rArmPick3 - 20, stepDelay);
-	// 4. Move to place
-	slowWrite(baseServo, basePlace3, stepDelay);
-	slowWrite(fArmServo, fArmPlace3, stepDelay);
-	slowWrite(rArmServo, rArmPlace3, stepDelay);
-	delay(200);
-	// 5. Open claw to release
-	slowWrite(clawServo, 130, clawDelay);
-	// 6. Reset all to 90°
+		// Transfer 2
+		// 2. Move to pick.
+		slowWrite(baseServo, basePick2, stepDelay);
+		slowWrite(fArmServo, fArmPick2, stepDelay);
+		slowWrite(rArmServo, rArmPick2, stepDelay);
+		slowWrite(clawServo, clawPick2, clawDelay);
+		delay(200);
+		// 3. Lift fArm
+		slowWrite(rArmServo, rArmPick2 - 20, stepDelay);
+		// 4. Move to place
+		slowWrite(baseServo, basePlace2, stepDelay);
+		slowWrite(fArmServo, fArmPlace2, stepDelay);
+		slowWrite(rArmServo, rArmPlace2, stepDelay);
+		delay(200);
+		// 5. Open claw to release
+		slowWrite(clawServo, 130, clawDelay);
+		// 6. Reset all to 90°
+		slowWrite(rArmServo, 90, stepDelay);
+		slowWrite(baseServo, 90, stepDelay);
+		slowWrite(clawServo, 130, clawDelay);
+		// Transfer 3
+		// 1. Open claw.
+		slowWrite(clawServo, 130, clawDelay);
+		// 2. Move to pick
+		slowWrite(baseServo, basePick3, stepDelay);
+		slowWrite(fArmServo, fArmPick3, stepDelay);
+		slowWrite(rArmServo, rArmPick3, stepDelay);
+		slowWrite(clawServo, clawPick3, clawDelay);
+		delay(200);
+		// 3. Lift fArm
+		slowWrite(rArmServo, rArmPick3 - 20, stepDelay);
+		// 4. Move to place
+		slowWrite(baseServo, basePlace3, stepDelay);
+		slowWrite(fArmServo, fArmPlace3, stepDelay);
+		slowWrite(rArmServo, rArmPlace3, stepDelay);
+		delay(200);
+		// 5. Open claw to release
+		slowWrite(clawServo, 130, clawDelay);
+		// 6. Reset all to 90°
 
-	slowWrite(rArmServo, 90, stepDelay);
-	slowWrite(baseServo, 90, stepDelay);
-	slowWrite(clawServo, 130, clawDelay);
+		slowWrite(rArmServo, 90, stepDelay);
+		slowWrite(baseServo, 90, stepDelay);
+		slowWrite(clawServo, 130, clawDelay);
 
-	// 避障并完成三次抓取与放置后进入永久暂停
-	while (true)
-	{
-		delay(1000);
-	}
+		// 避障并完成三次抓取与放置后进入永久暂停
+		while (true)
+		{
+			delay(1000);
+		}
 	}
 	// 正常循迹逻辑，根据传感器调整方向
 	else
@@ -404,13 +404,13 @@ void loop()
 		{
 			// 左侧探测到白线，右转调整
 			move(0, 40, 120);
-			//delay(3);
+			// delay(3);
 		}
 		else if (leftVal == HIGH && rightVal == LOW)
 		{
 			// 右侧探测到白线，左转调整
 			move(0, 120, 40);
-			//delay(3);
+			// delay(3);
 		}
 	}
 }
