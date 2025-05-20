@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+// ---------------- Servo Signal Pin Definitions ----------------
 // Servo signal pins
 const int basePin = 11;
 const int rArmPin = 5;
@@ -20,6 +21,8 @@ Servo clawServo;
 const int stepDelay = 20;
 const int clawDelay = 50;
 
+// ---------------- Pick and Place Position Constants ----------------
+// 定义三次抓取与放置过程中的各关节目标角度
 // Pick and place positions for transfer 1
 const int basePick1 = 115;
 const int fArmPick1 = 65;
@@ -49,6 +52,7 @@ const int basePlace3 = 53;
 const int fArmPlace3 = 50;
 const int rArmPlace3 = 160;
 const int clawPlace3 = 130;
+
 /**
  * A0  引脚连接OUT3
  * A1  引脚连接OUT4
@@ -59,6 +63,8 @@ const int clawPlace3 = 130;
  * 10 引脚连接IN3
  * 12 引脚连接IN4
  */
+// ---------------- Motor Control Pin Definitions ----------------
+// 定义电机前进、后退控制引脚
 // 左电机前进控制引脚（连接到 IN2）
 int Left_motor_go = A5;
 // 右电机前进控制引脚（连接到 IN3）
@@ -67,6 +73,8 @@ int Right_motor_go = A4;
 int Left_motor_back = 8;
 // 右电机后退控制引脚（连接到 IN4）
 int Right_motor_back = 12;
+// ---------------- Tracking and Obstacle Sensor Pin Definitions ----------------
+// 定义循迹与避障传感器输入引脚
 // 左循迹接收引脚 (连接到 OUT1)
 const int Left_tracking = A2;
 // 右循迹接收引脚 (连接到 OUT2)
@@ -77,6 +85,14 @@ const int SensorLeft_2 = A1;
 const int SensorRight_2 = A0;
 
 
+ /**
+  * 平滑控制函数 slowWrite
+  * 通过微小步进延时实现舵机平滑转动到目标位置
+  *
+  * @param s       目标舵机对象
+  * @param target  目标角度
+  * @param stepDelay 每步延时(ms)
+  */
 void slowWrite(Servo& s, int target, int stepDelay)
 {
 	int current = s.read();
@@ -89,6 +105,10 @@ void slowWrite(Servo& s, int target, int stepDelay)
 	s.write(target);
 }
 
+/**
+ * 单通道手动PWM输出
+ * 根据 duty 生成 0~2000us 脉宽用于控制普通电机
+ */
 void manualPWM(int pin, int duty)
 {
 	int highTime = map(duty, 0, 255, 0, 2000);
@@ -98,7 +118,10 @@ void manualPWM(int pin, int duty)
 	delayMicroseconds(2000 - highTime);
 }
 
-// Generate synchronized PWM pulses on two pins within the same cycle, with independent duty cycles
+/**
+ * 双通道同步手动PWM输出
+ * 在同一个20ms周期内对两个引脚分别输出独立占空比的PWM
+ */
 void manualPWMTwo(int pin1, int pin2, int duty1, int duty2)
 {
 	int high1 = map(duty1, 0, 255, 0, 2000);
@@ -125,7 +148,9 @@ void manualPWMTwo(int pin1, int pin2, int duty1, int duty2)
 }
 
 /**
- * 设置所有电机控制引脚为输出模式
+ * Arduino 初始化
+ * - 设置所有电机及传感器引脚模式
+ * - 初始化四个舵机并启动串口
  */
 void setup()
 {
@@ -151,19 +176,12 @@ void setup()
 }
 
 /**
- * 控制电机运动的统一接口函数。
- * 可根据 action 参数决定前进、后退、旋转或刹车。
+ * 小车运动控制接口 move
+ * 根据 action 参数执行不同运动模式，左右轮使用手动PWM控制速度
  *
- * @param action 动作类型：
- *               0 - 前进
- *               1 - 后退
- *               2 - 原地左转（左退右进）
- *               3 - 原地右转（左进右退/00？？
- *               4 - 绕左轮右转（只动右轮）
- *               5 - 绕右轮左转（只动左轮）
- *               6 - 刹车（停止）
- * @param speed_left 电机PWM速度（0~255）
- * @param speed_right 电机PWM速度（0~255）
+ * @param action       运动类型（0前进 1后退 2左转 3右转 4绕左轮右转 5绕右轮左转 6刹车）
+ * @param speed_left   左电机速度 (0~255)
+ * @param speed_right  右电机速度 (0~255)
  */
 void move(int action, int speed_left, int speed_right)
 {
@@ -175,6 +193,7 @@ void move(int action, int speed_left, int speed_right)
 	digitalWrite(Right_motor_go, LOW);
 	digitalWrite(Right_motor_back, LOW);
 
+	// 前进: 左右电机同步前行
 	if (action == 0)
 	{ // forward with independent, synchronized PWM
 		manualPWMTwo(Left_motor_go, Right_motor_go, speed_left, speed_right);
@@ -188,6 +207,7 @@ void move(int action, int speed_left, int speed_right)
 	// 	analogWrite(Right_motor_go, 0);
 	// 	digitalWrite(Right_motor_back, HIGH);
 	// }
+	// 原地左转: 左轮后退, 右轮前进
 	else if (action == 2)
 	{
 		// left_backward
@@ -208,22 +228,31 @@ void move(int action, int speed_left, int speed_right)
 	// else if (action == 5) {// pivot_right
 	//     analogWrite(Left_motor_go, speed_left);
 	// }
+	// 刹车: 停止所有电机
 	else if (action == 6)
 	{
 		// 停止刹车
 	}
 }
 
+/**
+ * 主循环 loop
+ * 持续执行：
+ * 1. 读取循迹与避障传感器
+ * 2. 障碍物检测并执行避障逻辑
+ * 3. 根据循迹传感器值执行线路跟踪
+ * 4. 遇障后触发机械臂抓取流程
+ */
 void loop()
 {
-	// 追迹逻辑
+	// 读取左右循迹传感器状态
 	int leftVal = digitalRead(Left_tracking);
 	int rightVal = digitalRead(Right_tracking);
 
-	// 读取避障传感器状态
+	// 读取左右避障传感器状态
 	int obsLeft = digitalRead(SensorLeft_2);
 	int obsRight = digitalRead(SensorRight_2);
-	// 遇到障碍物停车
+	// 同时检测到障碍物，启动避障与抓取流程
 	if (obsLeft == LOW && obsRight == LOW)
 	{
 		move(6, 0, 0);
@@ -356,12 +385,13 @@ void loop()
 	slowWrite(baseServo, 90, stepDelay);
 	slowWrite(clawServo, 130, clawDelay);
 
-	// Pause forever
+	// 避障并完成三次抓取与放置后进入永久暂停
 	while (true)
 	{
 		delay(1000);
 	}
 	}
+	// 正常循迹逻辑，根据传感器调整方向
 	else
 	{
 		if (leftVal == LOW && rightVal == LOW)
