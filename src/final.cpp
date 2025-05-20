@@ -16,6 +16,39 @@ Servo rArmServo;
 Servo fArmServo;
 Servo clawServo;
 
+// Step delay for smooth movement (ms)
+const int stepDelay = 20;
+const int clawDelay = 50;
+
+// Pick and place positions for transfer 1
+const int basePick1 = 115;
+const int fArmPick1 = 65;
+const int rArmPick1 = 150;
+const int clawPick1 = 102;
+const int basePlace1 = 5;
+const int fArmPlace1 = 20;
+const int rArmPlace1 = 170;
+const int clawPlace1 = 130;
+
+// Pick and place positions for transfer 2
+const int basePick2 = 145;
+const int fArmPick2 = 70;
+const int rArmPick2 = 150;
+const int clawPick2 = 105;
+const int basePlace2 = 30;
+const int fArmPlace2 = 40;
+const int rArmPlace2 = 155;
+const int clawPlace2 = 120;
+
+// Pick and place positions for transfer 3
+const int basePick3 = 170;
+const int fArmPick3 = 50;
+const int rArmPick3 = 160;
+const int clawPick3 = 103;
+const int basePlace3 = 53;
+const int fArmPlace3 = 50;
+const int rArmPlace3 = 160;
+const int clawPlace3 = 130;
 /**
  * A0  引脚连接OUT3
  * A1  引脚连接OUT4
@@ -43,34 +76,52 @@ const int SensorLeft_2 = A1;
 // 右避障接收引脚 (连接到 OUT3)
 const int SensorRight_2 = A0;
 
-void manualPWM(int pin, int duty) {
-  int highTime = map(duty, 0, 255, 0, 2000);
-  digitalWrite(pin, HIGH);
-  delayMicroseconds(highTime);
-  digitalWrite(pin, LOW);
-  delayMicroseconds(2000 - highTime);
+
+void slowWrite(Servo& s, int target, int stepDelay)
+{
+	int current = s.read();
+	int step = (current < target) ? 1 : -1;
+	for (int pos = current; pos != target; pos += step)
+	{
+		s.write(pos);
+		delay(stepDelay);
+	}
+	s.write(target);
+}
+
+void manualPWM(int pin, int duty)
+{
+	int highTime = map(duty, 0, 255, 0, 2000);
+	digitalWrite(pin, HIGH);
+	delayMicroseconds(highTime);
+	digitalWrite(pin, LOW);
+	delayMicroseconds(2000 - highTime);
 }
 
 // Generate synchronized PWM pulses on two pins within the same cycle, with independent duty cycles
-void manualPWMTwo(int pin1, int pin2, int duty1, int duty2) {
-  int high1 = map(duty1, 0, 255, 0, 2000);
-  int high2 = map(duty2, 0, 255, 0, 2000);
-  // Start both high
-  digitalWrite(pin1, HIGH);
-  digitalWrite(pin2, HIGH);
-  if (high1 < high2) {
-    delayMicroseconds(high1);
-    digitalWrite(pin1, LOW);
-    delayMicroseconds(high2 - high1);
-    digitalWrite(pin2, LOW);
-    delayMicroseconds(2000 - high2);
-  } else {
-    delayMicroseconds(high2);
-    digitalWrite(pin2, LOW);
-    delayMicroseconds(high1 - high2);
-    digitalWrite(pin1, LOW);
-    delayMicroseconds(2000 - high1);
-  }
+void manualPWMTwo(int pin1, int pin2, int duty1, int duty2)
+{
+	int high1 = map(duty1, 0, 255, 0, 2000);
+	int high2 = map(duty2, 0, 255, 0, 2000);
+	// Start both high
+	digitalWrite(pin1, HIGH);
+	digitalWrite(pin2, HIGH);
+	if (high1 < high2)
+	{
+		delayMicroseconds(high1);
+		digitalWrite(pin1, LOW);
+		delayMicroseconds(high2 - high1);
+		digitalWrite(pin2, LOW);
+		delayMicroseconds(2000 - high2);
+	}
+	else
+	{
+		delayMicroseconds(high2);
+		digitalWrite(pin2, LOW);
+		delayMicroseconds(high1 - high2);
+		digitalWrite(pin1, LOW);
+		delayMicroseconds(2000 - high1);
+	}
 }
 
 /**
@@ -96,8 +147,7 @@ void setup()
 	fArmServo.attach(fArmPin);
 	clawServo.attach(clawPin);
 
-	// Enable OC1A/OC1B non-inverting mode without changing PWM mode or prescaler.
-	// TCCR1A |= _BV(COM1A1) | _BV(COM1B1);
+	Serial.begin(9600);
 }
 
 /**
@@ -118,10 +168,10 @@ void setup()
 void move(int action, int speed_left, int speed_right)
 {
 	// 先全部关闭，避免冲突
-	//analogWrite(Left_motor_go, 0);
+	// analogWrite(Left_motor_go, 0);
 	digitalWrite(Left_motor_go, LOW);
 	digitalWrite(Left_motor_back, LOW);
-	//analogWrite(Right_motor_go, 0);
+	// analogWrite(Right_motor_go, 0);
 	digitalWrite(Right_motor_go, LOW);
 	digitalWrite(Right_motor_back, LOW);
 
@@ -141,10 +191,10 @@ void move(int action, int speed_left, int speed_right)
 	else if (action == 2)
 	{
 		// left_backward
-		//analogWrite(Left_motor_go, 0);
+		// analogWrite(Left_motor_go, 0);
 		digitalWrite(Left_motor_go, LOW);
 		digitalWrite(Left_motor_back, HIGH);
-		//analogWrite(Right_motor_go, 0);
+		// analogWrite(Right_motor_go, 0);
 		digitalWrite(Right_motor_go, LOW);
 		digitalWrite(Right_motor_back, LOW);
 	}
@@ -180,7 +230,8 @@ void loop()
 		delay(500);
 
 
-		for (int i = 0; i < 180; i++) {
+		for (int i = 0; i < 180; i++)
+		{
 			move(0, 80, 1);
 		}
 		for (int pos = 0; pos <= 180; pos++)
@@ -216,47 +267,119 @@ void loop()
 			delay(10);
 		}
 		rArmServo.write(90);
-		for (int pos = 90; pos <= 180; pos++)
+		delay(500);
+		fArmServo.write(90);
+		for (int pos = 90; pos <= 130; pos++)
 		{
 			clawServo.write(pos);
 			delay(10);
 		}
-		for (int pos = 180; pos >= 90; pos--)
+		for (int pos = 130; pos >= 90; pos--)
 		{
 			clawServo.write(pos);
 			delay(10);
 		}
 		clawServo.write(90);
 
-		delay(1000000);
+
+		baseServo.write(90);
+		fArmServo.write(90);
+		rArmServo.write(90);
+		clawServo.write(90);
 
 
+		// Transfer 1
+		// 1. Open claw.
+		slowWrite(clawServo, 130, clawDelay);
+	delay(200);
+	// 2. Move to pick
+	slowWrite(baseServo, basePick1, stepDelay);
+	slowWrite(fArmServo, fArmPick1, stepDelay);
+	slowWrite(rArmServo, rArmPick1, stepDelay);
+	slowWrite(clawServo, clawPick1, clawDelay);
+	delay(200);
+	// 3. Lift fArm
+	slowWrite(rArmServo, rArmPick1 - 20, stepDelay);
+	// 4. Move to place
+	slowWrite(baseServo, basePlace1, stepDelay);
+	slowWrite(fArmServo, fArmPlace1, stepDelay);
+	slowWrite(rArmServo, rArmPlace1, stepDelay);
+	delay(200);
+	// 5. Open claw to release
+	slowWrite(clawServo, 130, clawDelay);
+	// 6. Reset all to 90°
+	slowWrite(rArmServo, 90, stepDelay);
+	slowWrite(baseServo, 90, stepDelay);
+	slowWrite(clawServo, 130, clawDelay);
+
+	// Transfer 2
+	// 2. Move to pick.
+	slowWrite(baseServo, basePick2, stepDelay);
+	slowWrite(fArmServo, fArmPick2, stepDelay);
+	slowWrite(rArmServo, rArmPick2, stepDelay);
+	slowWrite(clawServo, clawPick2, clawDelay);
+	delay(200);
+	// 3. Lift fArm
+	slowWrite(rArmServo, rArmPick2 - 20, stepDelay);
+	// 4. Move to place
+	slowWrite(baseServo, basePlace2, stepDelay);
+	slowWrite(fArmServo, fArmPlace2, stepDelay);
+	slowWrite(rArmServo, rArmPlace2, stepDelay);
+	delay(200);
+	// 5. Open claw to release
+	slowWrite(clawServo, 130, clawDelay);
+	// 6. Reset all to 90°
+	slowWrite(rArmServo, 90, stepDelay);
+	slowWrite(baseServo, 90, stepDelay);
+	slowWrite(clawServo, 130, clawDelay);
+	// Transfer 3
+	// 1. Open claw.
+	slowWrite(clawServo, 130, clawDelay);
+	// 2. Move to pick
+	slowWrite(baseServo, basePick3, stepDelay);
+	slowWrite(fArmServo, fArmPick3, stepDelay);
+	slowWrite(rArmServo, rArmPick3, stepDelay);
+	slowWrite(clawServo, clawPick3, clawDelay);
+	delay(200);
+	// 3. Lift fArm
+	slowWrite(rArmServo, rArmPick3 - 20, stepDelay);
+	// 4. Move to place
+	slowWrite(baseServo, basePlace3, stepDelay);
+	slowWrite(fArmServo, fArmPlace3, stepDelay);
+	slowWrite(rArmServo, rArmPlace3, stepDelay);
+	delay(200);
+	// 5. Open claw to release
+	slowWrite(clawServo, 130, clawDelay);
+	// 6. Reset all to 90°
+
+	slowWrite(rArmServo, 90, stepDelay);
+	slowWrite(baseServo, 90, stepDelay);
+	slowWrite(clawServo, 130, clawDelay);
+
+	// Pause forever
+	while (true)
+	{
+		delay(1000);
+	}
 	}
 	else
 	{
 		if (leftVal == LOW && rightVal == LOW)
 		{
 			// 两个传感器都在白色区域，直行
-			move(0, 178, 160);
+			move(0, 108, 90);
 		}
 		else if (leftVal == LOW && rightVal == HIGH)
 		{
 			// 左侧探测到白线，右转调整
 			move(0, 40, 120);
-			delay(3);
+			//delay(3);
 		}
 		else if (leftVal == HIGH && rightVal == LOW)
 		{
 			// 右侧探测到白线，左转调整
 			move(0, 120, 40);
-			delay(3);
+			//delay(3);
 		}
 	}
 }
-
-
-// b 120->10 R 160 F50
-// b 145->35
-
-
-// b170->60 R160 f50
